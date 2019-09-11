@@ -12,6 +12,7 @@ int sizeY = 16;
 
 enum {
   RUNNING,
+  NPC_DEFEATED,
   GAME_OVER,
   YOU_WON
 };
@@ -119,35 +120,10 @@ void loop() {
           set_tone(SPEAKER_PIN, 220, 10000);
           npc_hp--;
 
-          if (npc_hp < 35) {
-            npc_state = DEFEATED;
-            for (int y = INVADER_H - 1; y > 1; --y) {
-              invader[y] &= ~(random(INT_MAX));
-              draw_invader(invader_pos[0], invader_pos[1]);
-              for (int a = 0; a < 50; ++a) {
-                handle_buttons();
-                delay(1);
-              }
-              set_tone(SPEAKER_PIN, 220, 1000 );
-              invader_pos[1]++;
-            }
-
-            delay(100);
-            clearScreen();
-            printString(15, 4, RED , DARK, "YOU WON!");
-            for (float f = 440; f < 1000; f *= 2) {
-              set_tone(SPEAKER_PIN, f, 10000 / f);
-              delay(10000 / f);
-            }
-            delay(100);
-            clearScreen();
-            invader_pos[0] = random(1, 50);
-            invader_pos[1] = 1;
-            refresh_invader();
-            npc_hp = 44;
-            npc_state = MOVING;
+          if (npc_hp < 30) {
+            npc_state  = DEFEATED;
+            game_state = NPC_DEFEATED;
           }
-          return;
         }
         else {
           setPixel(pula[0], pula[1], DARK);
@@ -162,9 +138,35 @@ void loop() {
         }
       }
       break;
-
+      
+    case NPC_DEFEATED:
+      clearScreen();
+      for (int i = 0; i < 500; ++i) {
+        delay(1);
+        handle_buttons();
+        set_tone(SPEAKER_PIN, 220, 1000 );
+        count++;
+      }
+      npc_state = NPC_HIDDEN;
+      clearScreen();
+      delay(1);
+      printString(15, 4, RED , DARK, "YOU WON!");
+      for (float f = 440; f < 1000; f *= 2) {
+        set_tone(SPEAKER_PIN, f, 10000 / f);
+        delay(10000 / f);
+      }
+      delay(100);
+      clearScreen();
+      invader_pos[0] = random(1, 50);
+      invader_pos[1] = 1;
+      refresh_invader();
+      npc_hp = 44;
+      npc_state  = MOVING;
+      game_state = RUNNING;
+      break;
+      
     case GAME_OVER:
-      npc_state = DEFEATED;
+      npc_state = NPC_HIDDEN;
       clearScreen();
       for (float f = 1000; f > 50; f /= 1.5) {
         set_tone(SPEAKER_PIN, f, 10000 / f);
@@ -176,7 +178,7 @@ void loop() {
       invader_pos[1] = 0;
       refresh_invader();
       npc_hp = 44;
-      npc_state = MOVING;
+      npc_state  = MOVING;
       game_state = RUNNING;
       break;
   }
@@ -243,6 +245,18 @@ void update_invader_position() {
       bomb_pos[1] = invader_pos[1] + 8;
       npc_state = MOVING;
       break;
+    case NPC_HIDDEN:
+      //draw_invader(invader_pos[0], invader_pos[1]);
+      break;
+    case DEFEATED:
+      if (count % 10 == 0) {
+        invader[random(2, INVADER_H)] &= ~(random(INT_MAX));
+        invader_pos[1]++;
+        if (invader_pos[1] > 9) {
+          npc_state = NPC_HIDDEN;
+        }
+      }
+      draw_invader(invader_pos[0], invader_pos[1]);
   }
 }
 

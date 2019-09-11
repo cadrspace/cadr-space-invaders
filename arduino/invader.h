@@ -7,6 +7,7 @@ const byte INVADER_H = 9;
 enum {
   MOVING,
   ATTACKING,
+  NPC_HIDDEN,
   DEFEATED
 };
 
