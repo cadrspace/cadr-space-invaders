@@ -7,9 +7,6 @@
 #include "invader.h"
 #include "graph.h"
 
-int sizeX = 80; // !!!!> x%8==0
-int sizeY = 16;
-
 enum {
   RUNNING,
   NPC_DEFEATED,
@@ -62,33 +59,50 @@ void draw_invader(unsigned int x, unsigned int y) {
   }
 }
 
+void draw_explosion(unsigned int x, unsigned int y) {
+  for (int iy = 0; iy < INVADER_H; ++iy) {
+    for (int ix = 0; ix < INVADER_W; ++ix) {
+      invader[iy] |= ~(random(INT_MAX));
+    }
+  }
+  for (int iy = 0; iy < INVADER_H; ++iy) {
+    for (int ix = 0; ix < INVADER_W; ++ix) {
+      setPixel(x + ix, y + iy,
+               (invader[iy] & (1 << ix)) > 0);
+    }
+  }
+}
+
 void reload() {
   clearScreen();
   draw_invader(invader_pos[0], invader_pos[1]);
 }
 
+void move_player(int delta_x) {
+  drawHLine(posC + 1, posC + 3, 13, DARK);
+  drawHLine(posC, posC + 4, 14, DARK);
+  posC += delta_x;
+  posC = constrain(posC, 0, 70);
+  drawHLine(posC + 1, posC + 3, 13, RED);
+  drawHLine(posC, posC + 4, 14, RED);
+}
+
 void handle_buttons() {
   if (digitalRead(BUTTON_LEFT) == LOW)
   {
-    drawHLine(posC, posC + 4, 14, DARK);
-    posC--;
-    posC = constrain(posC, 0, 70);
-    drawHLine(posC, posC + 4, 14, RED);
+    move_player(-1);
     delay(2);
   }
   if (digitalRead(BUTTON_RIGHT) == LOW)
   {
-    drawHLine(posC, posC + 4, 14, DARK);
-    posC++;
-    posC = constrain(posC, 0, 74);
-    drawHLine(posC, posC + 4, 14, RED);
+    move_player(1);
     delay(2);
   }
   if ((digitalRead(BUTTON_FIRE) == LOW)
       && ((pula[1] < 0) && (pula[0] < 0))
       && ( millis() - tm > 10))  {
     pula[0] = posC + 2;
-    pula[1] = 13;
+    pula[1] = 12;
     tm = millis();
     set_tone(SPEAKER_PIN, 880, 1000);
   }
@@ -99,6 +113,15 @@ boolean is_invader_hit(byte px, byte py) {
          && (px < (invader_pos[0] + INVADER_W))
          && (py >= invader_pos[1])
          && (py < (invader_pos[1] + INVADER_H));
+}
+
+void draw_explosion(uint8_t x, uint8_t y, uint8_t radius) {
+  for (int r = 1; r < radius; ++r) {
+    set_tone(SPEAKER_PIN, 110, 10);
+    drawCircle(x, y, r);
+    delay(5 + (r * 2));
+    clearScreen();
+  }
 }
 
 void loop() {
@@ -120,7 +143,7 @@ void loop() {
           set_tone(SPEAKER_PIN, 220, 10000);
           npc_hp--;
 
-          if (npc_hp < 30) {
+          if (npc_hp < 25) {
             npc_state  = DEFEATED;
             game_state = NPC_DEFEATED;
           }
@@ -138,7 +161,7 @@ void loop() {
         }
       }
       break;
-      
+
     case NPC_DEFEATED:
       clearScreen();
       for (int i = 0; i < 500; ++i) {
@@ -150,11 +173,14 @@ void loop() {
       npc_state = NPC_HIDDEN;
       clearScreen();
       delay(1);
+      draw_explosion(invader_pos[0] + 7, sizeY, random(6, 12));
+      
       printString(15, 4, RED , DARK, "YOU WON!");
       for (float f = 440; f < 1000; f *= 2) {
         set_tone(SPEAKER_PIN, f, 10000 / f);
         delay(10000 / f);
       }
+
       delay(100);
       clearScreen();
       invader_pos[0] = random(1, 50);
@@ -164,10 +190,11 @@ void loop() {
       npc_state  = MOVING;
       game_state = RUNNING;
       break;
-      
+
     case GAME_OVER:
       npc_state = NPC_HIDDEN;
       clearScreen();
+      draw_explosion(posC + 2, 12, random(4, 6));
       for (float f = 1000; f > 50; f /= 1.5) {
         set_tone(SPEAKER_PIN, f, 10000 / f);
         printString(13, 4, RED , DARK, "YOU LOSE!");

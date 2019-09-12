@@ -13,6 +13,9 @@
 
 #define SPK 8
 
+int sizeX = 80; // !!!!> x%8==0
+int sizeY = 16;
+
 enum {
   DARK,
   RED,

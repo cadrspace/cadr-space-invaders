@@ -72,6 +72,9 @@ void setPixel(int x, int y, uint8_t color) { //20,8
   int realX = (x / 8); // =
   int _exp = (x % 8); //
 
+  if (y >= sizeY) {
+    return;
+  }
   switch (color)
   {
     case DARK:
