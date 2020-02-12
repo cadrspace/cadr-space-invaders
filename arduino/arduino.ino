@@ -75,6 +75,7 @@ void draw_explosion(unsigned int x, unsigned int y) {
 
 void reload() {
   clearScreen();
+  move_player(0);
   draw_invader(invader_pos[0], invader_pos[1]);
 }
 
@@ -174,7 +175,6 @@ void loop() {
       clearScreen();
       delay(1);
       draw_explosion(invader_pos[0] + 7, sizeY, random(6, 12));
-      
       printString(15, 4, RED , DARK, "YOU WON!");
       for (float f = 440; f < 1000; f *= 2) {
         set_tone(SPEAKER_PIN, f, 10000 / f);
@@ -189,6 +189,7 @@ void loop() {
       npc_hp = 44;
       npc_state  = MOVING;
       game_state = RUNNING;
+      reload();
       break;
 
     case GAME_OVER:
@@ -207,6 +208,7 @@ void loop() {
       npc_hp = 44;
       npc_state  = MOVING;
       game_state = RUNNING;
+      reload();
       break;
   }
 }
