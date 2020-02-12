@@ -126,6 +126,7 @@ void draw_explosion(uint8_t x, uint8_t y, uint8_t radius) {
 }
 
 void loop() {
+  uint8_t explosion_radius;
   count++;
   switch (game_state) {
     case RUNNING:
@@ -174,9 +175,14 @@ void loop() {
       npc_state = NPC_HIDDEN;
       clearScreen();
       delay(1);
-
+      explosion_radius = random(6, 16);
       draw_explosion(invader_pos[0] + 7, sizeY,
-                     random(6, 16));
+                     explosion_radius);
+      if (((posC + 4) > ((invader_pos[0] + 7) - (explosion_radius / 2)))
+          && (posC < ((invader_pos[0] + 7) - (explosion_radius / 2)))) {
+        game_state = GAME_OVER;
+        break;
+      }
 
       printString(15, 4, RED , DARK, "YOU WON!");
       for (float f = 440; f < 1000; f *= 2) {
