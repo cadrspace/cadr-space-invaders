@@ -174,7 +174,10 @@ void loop() {
       npc_state = NPC_HIDDEN;
       clearScreen();
       delay(1);
-      draw_explosion(invader_pos[0] + 7, sizeY, random(6, 12));
+
+      draw_explosion(invader_pos[0] + 7, sizeY,
+                     random(6, 16));
+
       printString(15, 4, RED , DARK, "YOU WON!");
       for (float f = 440; f < 1000; f *= 2) {
         set_tone(SPEAKER_PIN, f, 10000 / f);
